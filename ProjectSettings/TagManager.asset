@@ -48,6 +48,9 @@ TagManager:
   - name: Planets
     uniqueID: 2034961091
     locked: 0
+  - name: Miner
+    uniqueID: 3524498475
+    locked: 0
   - name: Ships
     uniqueID: 749417615
     locked: 0

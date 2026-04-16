@@ -1,6 +1,5 @@
 using UnityEngine;
 using Blackvers.Data;
-using Blackvers.Commons;
 
 namespace Blackvers.Planet
 {
@@ -11,6 +10,7 @@ namespace Blackvers.Planet
     public class PlanetController : MonoBehaviour
     {
         public PlanetData planetData;
+        public float radius;
 
         [Header("Internal References")]
         public SpriteRenderer modelRenderer;
@@ -21,20 +21,15 @@ namespace Blackvers.Planet
         public void Initialize()
         {
             if (this.planetData == null) return;
+            this.radius = this.planetData.radius;
 
             if (this.modelRenderer != null)
             {
                 this.modelRenderer.sprite = this.planetData.planetSprite;
             }
 
-            // Apply scale based on planet size
-            float scale = this.planetData.size switch
-            {
-                PlanetSize.Small => 0.5f,
-                PlanetSize.Medium => 1.0f,
-                PlanetSize.Large => 1.8f,
-                _ => 1.0f
-            };
+            // Apply scale based on planet radius
+            float scale = this.planetData.radius;
             this.transform.localScale = new Vector3(scale, scale, 1f);
             
             this.gameObject.name = this.planetData.planetName;

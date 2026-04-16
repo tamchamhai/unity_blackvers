@@ -3,6 +3,7 @@ using UnityEditor;
 using System.IO;
 using System.Text;
 using UnityEditorInternal;
+using Blackvers.Data;
 
 namespace Blackvers.EditorTools
 {
@@ -23,6 +24,25 @@ namespace Blackvers.EditorTools
             
             AssetDatabase.Refresh();
             Debug.Log("<color=green>[LayerEnumGenerator]</color> Successfully generated SortingLayerName enum at: " + FILE_PATH);
+        }
+
+        [MenuItem("Tools/Fix All Planets Radius")]
+        public static void FixAllPlanetsRadius()
+        {
+            string[] guids = AssetDatabase.FindAssets("t:PlanetData");
+            foreach (string guid in guids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                PlanetData data = AssetDatabase.LoadAssetAtPath<PlanetData>(path);
+                
+                if (data == null) continue;
+                
+                data.radius = 0.5f;
+                EditorUtility.SetDirty(data);
+            }
+            
+            AssetDatabase.SaveAssets();
+            Debug.Log("<color=green>[Fixer]</color> Successfully updated radius to 0.5 for all PlanetData assets.");
         }
 
         private static string[] GetSortingLayerNames()
@@ -48,12 +68,13 @@ namespace Blackvers.EditorTools
             stringBuilder.AppendLine("    public enum SortingLayerName");
             stringBuilder.AppendLine("    {");
 
-            foreach (string name in layerNames)
+            for (int i = 0; i < layerNames.Length; i++)
             {
+                string name = layerNames[i];
                 string validName = name.Replace(" ", "");
                 if (string.IsNullOrEmpty(validName)) continue;
                 
-                stringBuilder.AppendLine($"        {validName},");
+                stringBuilder.AppendLine($"        {validName} = {i},");
             }
 
             stringBuilder.AppendLine("    }");

@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Collections.Generic;
-using Blackvers.Commons;
 
 namespace Blackvers.Data
 {
@@ -12,7 +11,7 @@ namespace Blackvers.Data
     {
         public string planetName;
         public Sprite planetSprite;
-        public PlanetSize size;
+        public float radius = 0.5f;
         public int priority;
         public List<MineralData> minerals = new List<MineralData>();
     }

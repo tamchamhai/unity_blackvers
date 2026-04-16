@@ -17,7 +17,7 @@ trigger: always_on
 
 ### Commit code
 
-- Chỉ commit code khi được yêu cầu
+- Chỉ commit code khi được yêu cầu, và tôi sẽ yêu cầu commit và chỉ ra type cần cần commit
 - Format cho commit message: [type][id]commit_message
   - type: feat || fix || update
   - commit_message là tóm tắt ngắn gọn những gì làm trong commit đó, và luôn dùng tiếng anh

@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using Blackvers.Planet;
 using Blackvers.Data;
+using Blackvers.Commons;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -19,13 +20,13 @@ namespace Blackvers.Spawner
         {
             if (this.prefabs == null) return;
             
-            this.planetPrefabs.Clear();
+            this.prefabList.Clear();
             foreach (Transform child in this.prefabs)
             {
                 var controller = child.GetComponent<PlanetController>();
                 if (controller != null)
                 {
-                    this.planetPrefabs.Add(controller);
+                    this.prefabList.Add(child);
                 }
             }
         }
@@ -95,7 +96,7 @@ namespace Blackvers.Spawner
 
             SpriteRenderer spriteRenderer = modelObj.AddComponent<SpriteRenderer>();
             spriteRenderer.sprite = controller.planetData.planetSprite;
-            spriteRenderer.sortingLayerName = "Planets";
+            spriteRenderer.sortingLayerName = SortingLayerName.Planets.ToString();
             
             controller.modelRenderer = spriteRenderer;
         }
