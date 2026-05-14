@@ -10,6 +10,7 @@ namespace Blackvers.Planet
     public class PlanetController : MonoBehaviour
     {
         public PlanetData planetData;
+        public string planetId;
         public float radius;
 
         [Header("Internal References")]
@@ -21,6 +22,7 @@ namespace Blackvers.Planet
         public void Initialize()
         {
             if (this.planetData == null) return;
+            this.planetId = Blackvers.Commons.CommonUtils.GenerateId();
             this.radius = this.planetData.radius;
 
             if (this.modelRenderer != null)

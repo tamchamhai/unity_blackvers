@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   planetName: small_rocky_1
   planetSprite: {fileID: 21300000, guid: 41ae89c0cf6eb9f44a1c297abefe6f17, type: 3}
-  radius: 0.5
+  radius: 1
   priority: 17
   minerals: []

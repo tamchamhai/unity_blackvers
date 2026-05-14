@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   planetName: thick_atmo_3
   planetSprite: {fileID: 21300000, guid: 06c9c9d092dc142429453911cb957b81, type: 3}
-  radius: 0.5
+  radius: 1
   priority: 20
   minerals: []

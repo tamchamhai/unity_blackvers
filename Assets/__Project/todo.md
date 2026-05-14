@@ -4,6 +4,8 @@
 
 - [x] Create ScriptableObject for planet data for all planets in the folder "Assets/\_\_Project/Sprites/Planets"
   - Fields: name, sprite, size, minerals
+- [ ] Create ScriptableObject for ship data for all ships in the folder "Assets/\_\_Project/Sprites/Ships"
+  - Fields: name, sprite, size, minerals
 
 ## 🚧 In Progress
 

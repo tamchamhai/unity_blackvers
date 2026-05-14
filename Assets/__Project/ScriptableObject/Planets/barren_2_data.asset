@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   planetName: barren_2
   planetSprite: {fileID: 21300000, guid: 85a7d3c3a0db4c04a9f0a146291460e9, type: 3}
-  radius: 0.5
+  radius: 1
   priority: 1
   minerals:
   - {fileID: 0}

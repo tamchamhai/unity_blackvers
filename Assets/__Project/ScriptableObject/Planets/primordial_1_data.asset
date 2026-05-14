@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   planetName: primordial_1
   planetSprite: {fileID: 21300000, guid: 06373b0e08b521240ad7585efaf7fdc2, type: 3}
-  radius: 0.5
+  radius: 1
   priority: 15
   minerals: []

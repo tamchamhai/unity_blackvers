@@ -7,16 +7,18 @@ namespace Blackvers.Spawner
     /// <summary>
     /// Spawner specifically for planets.
     /// Inherits from the base Spawner to use Object Pooling.
+    /// Manages random distribution and overlap prevention for planet generation.
     /// </summary>
     public partial class PlanetSpawner : Spawner
     {
-        private static PlanetSpawner instance;
-        public static PlanetSpawner Instance => instance;
+        private static PlanetSpawner _instance;
+        public static PlanetSpawner Instance => _instance;
 
         [Header("Random Spawn Settings")]
         [SerializeField] protected float minDistance = 15f;
         [SerializeField] protected float maxDistance = 150f;
         [SerializeField] protected float safeDistancePadding = 10f;
+        [SerializeField] protected int maxSpawnAttempts = 100;
         [SerializeField] protected List<PlanetController> activePlanets = new List<PlanetController>();
 
         protected override void LoadComponents()
@@ -28,8 +30,8 @@ namespace Blackvers.Spawner
 
         protected virtual void LoadInstance()
         {
-            if (PlanetSpawner.instance != null) return;
-            PlanetSpawner.instance = this;
+            if (PlanetSpawner._instance != null) return;
+            PlanetSpawner._instance = this;
         }
 
         protected virtual void LoadPrefabList()
@@ -46,14 +48,15 @@ namespace Blackvers.Spawner
         protected override void Start()
         {
             base.Start();
-            this.SpawnAllPlanets();
-        }       
+            this.OnStart();
+        }
 
-        /// <summary>
-        /// Spawns all planets from the prefab list at random, non-overlapping positions.
-        /// </summary>
-        [ContextMenu("Spawn All Planets")]
-        public virtual void SpawnAllPlanets()
+        protected virtual void OnStart()
+        {
+            this.SpawnAllPlanets();
+        }
+
+        protected virtual void SpawnAllPlanets()
         {
             foreach (Transform prefab in this.prefabList)
             {
@@ -66,58 +69,98 @@ namespace Blackvers.Spawner
             PlanetController prefabController = prefab.GetComponent<PlanetController>();
             if (prefabController == null) return;
 
-            Vector3 spawnPosition = Vector3.zero;
-            bool foundPosition = false;
-            int maxAttempts = 100;
-
-            for (int i = 0; i < maxAttempts; i++)
+            float realRadius = this.GetRealRadius(prefabController);
+            if (!this.TryGetSafeSpawnPosition(realRadius, out var spawnPosition))
             {
-                spawnPosition = this.GetRandomPositionInRing();
-                if (!this.CheckOverlap(spawnPosition, prefabController.planetData.radius))
-                {
-                    foundPosition = true;
-                    break;
-                }
-            }
-
-            if (!foundPosition)
-            {
-                Debug.LogWarning($"[PlanetSpawner] Could not find a safe position for {prefab.name} after {maxAttempts} attempts.");
+                Debug.LogWarning($"[PlanetSpawner] Could not find a safe position for {prefab.name} after {this.maxSpawnAttempts} attempts.");
                 return;
             }
 
             Transform spawned = this.Spawn(prefab.name, spawnPosition, Quaternion.identity);
+            this.HandleSpawnedPlanet(spawned);
+        }
+
+        protected virtual void HandleSpawnedPlanet(Transform spawned)
+        {
+            if (spawned == null) return;
+
             PlanetController controller = spawned.GetComponent<PlanetController>();
-            if (controller != null)
+            if (controller == null) return;
+
+            controller.Initialize();
+            this.AddActivePlanet(controller);
+            this.SpawnMinerForPlanet(controller);
+        }
+
+        protected virtual void SpawnMinerForPlanet(PlanetController controller)
+        {
+            if (MinerShipSpawner.Instance == null) return;
+            MinerShipSpawner.Instance.SpawnMinerForPlanet(controller);
+        }
+
+        protected virtual void AddActivePlanet(PlanetController controller)
+        {
+            if (this.activePlanets.Contains(controller)) return;
+            this.activePlanets.Add(controller);
+        }
+
+        protected virtual bool TryGetSafeSpawnPosition(float radius, out Vector3 spawnPosition)
+        {
+            spawnPosition = Vector3.zero;
+
+            for (var i = 0; i < this.maxSpawnAttempts; i++)
             {
-                controller.Initialize();
-                this.activePlanets.Add(controller);
+                spawnPosition = this.GetRandomPositionInRing();
+                if (!this.CheckOverlap(spawnPosition, radius)) return true;
             }
+
+            return false;
         }
 
         protected virtual Vector3 GetRandomPositionInRing()
         {
-            float angle = Random.Range(0f, Mathf.PI * 2);
-            float distance = Random.Range(this.minDistance, this.maxDistance);
+            var angle = Random.Range(0f, Mathf.PI * 2);
+            var distance = Random.Range(this.minDistance, this.maxDistance);
             
-            float x = Mathf.Cos(angle) * distance;
-            float y = Mathf.Sin(angle) * distance;
+            var x = Mathf.Cos(angle) * distance;
+            var y = Mathf.Sin(angle) * distance;
             
             return new Vector3(x, y, 0f);
         }
 
-        protected virtual bool CheckOverlap(Vector3 pos, float radius)
+        protected virtual bool CheckOverlap(Vector3 position, float radius)
         {
+            // 1. Avoid overlapping with MotherShip (Assuming MotherShip is at Vector3.zero with a safe radius)
+            float motherShipSafeRadius = 15f; 
+            if (Vector3.Distance(position, Vector3.zero) < (radius + motherShipSafeRadius)) return true;
+
+            // 2. Check against other planets
             foreach (PlanetController other in this.activePlanets)
             {
                 if (other == null) continue;
+                if (!other.gameObject.activeInHierarchy) continue;
 
-                float distance = Vector3.Distance(pos, other.transform.position);
-                float minSafeDistance = radius + other.planetData.radius + this.safeDistancePadding;
+                float otherRadius = this.GetRealRadius(other);
+                var distance = Vector3.Distance(position, other.transform.position);
+                var minSafeDistance = radius + otherRadius + this.safeDistancePadding;
                 
                 if (distance < minSafeDistance) return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// Calculates the real world radius of a planet based on its SpriteRenderer bounds.
+        /// </summary>
+        protected virtual float GetRealRadius(PlanetController controller)
+        {
+            if (controller.modelRenderer == null || controller.modelRenderer.sprite == null)
+            {
+                return controller.planetData != null ? controller.planetData.radius : 1f;
+            }
+
+            // Using bounds.extents.x which accounts for localScale and PPU
+            return controller.modelRenderer.bounds.extents.x;
         }
     }
 }

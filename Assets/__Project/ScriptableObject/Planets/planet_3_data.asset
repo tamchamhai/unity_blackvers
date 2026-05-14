@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   planetName: planet_3
   planetSprite: {fileID: -4016604626699780835, guid: 9a6dabfdbb0b24b478d52ad93c8a11d7, type: 3}
-  radius: 0.5
+  radius: 1
   priority: 13
   minerals: []
