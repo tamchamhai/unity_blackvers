@@ -64,7 +64,60 @@ namespace Blackvers.Ship.MinerShip
             // Ignore MotherShip if the ship is empty (to avoid spawn collision logs)
             if (!this.controller.IsFullLoad && collision.transform.parent == this.controller.MotherShip) return;
 
-            this.controller.OnImpactEntered(collision);
+            if (!this.controller.IsFullLoad && collision.transform.parent == this.controller.TargetPlanet)
+            {
+                this.MinePlanet(collision.transform.parent);
+                return;
+            }
+
+            if (this.controller.IsFullLoad && collision.transform.parent == this.controller.MotherShip)
+            {
+                this.UnloadMinerals(collision.transform.parent);
+            }
+        }
+
+        protected virtual void MinePlanet(Transform planetTransform)
+        {
+            if (this.controller.minerInventory == null) return;
+
+            Blackvers.Planet.PlanetController planet = planetTransform.GetComponent<Blackvers.Planet.PlanetController>();
+            if (planet != null && planet.mineralManager != null)
+            {
+                float availableCapacity = this.controller.minerInventory.MaxCapacity - this.controller.minerInventory.CurrentCapacity;
+                
+                if (availableCapacity > 0)
+                {
+                    var collectedMinerals = planet.mineralManager.CollectMineral(availableCapacity);
+                    foreach (var item in collectedMinerals)
+                    {
+                        this.controller.minerInventory.AddMineral(item.mineralData, item.amount);
+                    }
+                }
+            }
+
+            // Always return to mothership after touching planet
+            this.controller.IsFullLoad = true;
+            this.controller.SetState(MinerShipState.ToMotherShip);
+        }
+
+        protected virtual void UnloadMinerals(Transform motherShipTransform)
+        {
+            if (this.controller.minerInventory == null) return;
+
+            MotherShipController msController = MotherShipController.Instance;
+            if (msController != null && msController.Inventory != null)
+            {
+                var itemsToUnload = this.controller.minerInventory.GetAllItems();
+                foreach (var item in itemsToUnload)
+                {
+                    msController.Inventory.AddMineral(item.mineralData, item.amount);
+                }
+            }
+
+            // Clear inventory and go back to mining
+            this.controller.minerInventory.Clear();
+            this.controller.IsFullLoad = false;
+            this.controller.SetState(MinerShipState.ToPlanet);
         }
     }
 }
