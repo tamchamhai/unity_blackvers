@@ -3,6 +3,13 @@ using System.Collections.Generic;
 
 namespace Blackvers.Data
 {
+    [System.Serializable]
+    public class PlanetMineral
+    {
+        public MineralData mineralData;
+        public float mineRate;
+    }
+
     /// <summary>
     /// ScriptableObject data for planets.
     /// </summary>
@@ -13,6 +20,6 @@ namespace Blackvers.Data
         public Sprite planetSprite;
         public float radius = 0.5f;
         public int priority;
-        public List<MineralData> minerals = new List<MineralData>();
+        public List<PlanetMineral> minerals = new List<PlanetMineral>();
     }
 }

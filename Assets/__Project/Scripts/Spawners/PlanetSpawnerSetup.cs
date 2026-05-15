@@ -84,8 +84,20 @@ namespace Blackvers.Spawner
 
             this.CreateModel(planetObj, controller);
             this.CreateImpact(planetObj, controller);
+            this.CreateMineral(planetObj, controller);
 
             controller.Initialize();
+        }
+
+        protected virtual void CreateMineral(GameObject parent, PlanetController controller)
+        {
+            GameObject mineralObj = new GameObject("Mineral");
+            mineralObj.transform.SetParent(parent.transform);
+            mineralObj.transform.localPosition = Vector3.zero;
+
+            PlanetMineralManager mineralManager = mineralObj.AddComponent<PlanetMineralManager>();
+            mineralManager.planetController = controller;
+            controller.mineralManager = mineralManager;
         }
 
         protected virtual void CreateModel(GameObject parent, PlanetController controller)
@@ -109,6 +121,19 @@ namespace Blackvers.Spawner
 
             PlanetImpact impact = impactObj.AddComponent<PlanetImpact>();
             impact.planetController = controller;
+
+            CircleCollider2D collider = impactObj.GetComponent<CircleCollider2D>();
+            if (collider == null)
+            {
+                collider = impactObj.AddComponent<CircleCollider2D>();
+            }
+            
+            collider.isTrigger = true;
+            
+            if (controller.planetData != null && controller.planetData.planetSprite != null)
+            {
+                collider.radius = controller.planetData.planetSprite.bounds.extents.x;
+            }
         }
     }
 }

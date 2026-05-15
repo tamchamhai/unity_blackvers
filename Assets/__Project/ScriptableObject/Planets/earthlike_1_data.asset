@@ -16,4 +16,8 @@ MonoBehaviour:
   planetSprite: {fileID: 21300000, guid: 8af57e43b5767104580271d5d970c4bb, type: 3}
   radius: 1
   priority: 0
-  minerals: []
+  minerals:
+  - mineralData: {fileID: 11400000, guid: b7eef7e922765de4b891e693284f4414, type: 2}
+    mineRate: 2.842923
+  - mineralData: {fileID: 11400000, guid: c63e404303ef5a04985d10af66a1a2cd, type: 2}
+    mineRate: 2.773843

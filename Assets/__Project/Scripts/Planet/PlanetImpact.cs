@@ -30,7 +30,6 @@ namespace Blackvers.Planet
                 this.circleCollider = gameObject.AddComponent<CircleCollider2D>();
             }
             this.circleCollider.isTrigger = true;
-            this.circleCollider.radius = 1f;
         }
     }
 }

@@ -2,23 +2,39 @@
 trigger: always_on
 ---
 
-###
+### Development Rules
 
-- Khi được yêu cầu load component nào đó thì luôn luôn tạo 1 function load component rồi call nó trong function override LoadComponents.
-- Luôn tạo document cho Class.
-- Khi tạo singleton thì tạo một function cho singleton rồi gọi nó trong LoadComponents.
-- Luôn dùng this. cho các biến internal.
-- Nếu được thì ưu tiên dùng if kiểu Guard Clause thay vì kiểu truyền thống.
-- Không dùng while(true) {}.
-- Không viết logic vào các method của Unity như Start(), Update(), FixedUpdate() v.v... cũng như các method trong MasterBehaviour, thay vào đó viết function riêng biệt.
-- Không viết tắt kiểu như SpriteRenderer sr mà viết là SpriteRenderer spriteRenderer.
-- Khi viết code setup chỉ chạy ở editor thì dùng partial viết ở 1 file riêng, hậu tố của file sẽ là Setup, ví dụ như class PlanetSpawner thì file setup sẽ là PlanetSpawnerSetup
-- Luôn viết comment bằng tiếng anh
+Component Loading: When required to load a component, always create a dedicated loading function and invoke it within the LoadComponents override method.
 
-### Commit code
+Class Documentation: Always generate comprehensive documentation/comments for every Class.
 
-- Chỉ commit code khi được yêu cầu, và tôi sẽ yêu cầu commit và chỉ ra type cần cần commit
-- Format cho commit message: [type][id]commit_message
-  - type: feat || fix || update
-  - commit_message là tóm tắt ngắn gọn những gì làm trong commit đó, và luôn dùng tiếng anh
-  - id: tạo 1 mã hash 7 kí từ gồm sô và chứ cái viết thường
+Singleton Pattern: When implementing a Singleton, create a specific initialization function for the singleton instance and call it inside LoadComponents.
+
+Internal Referencing: Always use the this. prefix when accessing internal variables or members.
+
+Coding Style: Prefer Guard Clauses over nested if-else structures whenever possible.
+
+Looping Restrictions: Strictly prohibit the use of while(true) {} loops.
+
+Method Logic Separation: Do not write business logic directly inside Unity lifecycle methods (e.g., Start(), Update(), FixedUpdate()) or MasterBehaviour methods. Instead, encapsulate logic in separate, descriptive functions.
+
+Naming Conventions: Do not use abbreviations for variable names (e.g., use SpriteRenderer spriteRenderer instead of SpriteRenderer sr).
+
+Editor Setup: For setup code intended only for the Editor, use partial classes and place them in a separate file with the suffix Setup (e.g., for class PlanetSpawner, the setup file should be PlanetSpawnerSetup).
+
+Language Standards:
+
+    Always write code comments in English.
+
+    Always create the implementation plan in Vietnamese.
+
+Code Commit Protocols
+Commit Trigger: Only commit code when explicitly requested. I will specify the required commit type.
+
+Commit Message Format: [type][id] commit_message
+
+      type: Must be one of feat, fix, or update.
+
+      id: A unique 7-character alphanumeric hash (lowercase letters and numbers).
+
+      commit_message: A concise summary of the changes in English.

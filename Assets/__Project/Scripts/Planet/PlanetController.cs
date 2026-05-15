@@ -7,7 +7,7 @@ namespace Blackvers.Planet
     /// Controller for planet behavior.
     /// Manages data and adjusts visuals on the 'Model' child object.
     /// </summary>
-    public class PlanetController : MonoBehaviour
+    public class PlanetController : MasterMonoBehaviour
     {
         public PlanetData planetData;
         public string planetId;
@@ -15,6 +15,19 @@ namespace Blackvers.Planet
 
         [Header("Internal References")]
         public SpriteRenderer modelRenderer;
+        public PlanetMineralManager mineralManager;
+
+        protected override void LoadComponents()
+        {
+            base.LoadComponents();
+            this.LoadMineralManager();
+        }
+
+        protected virtual void LoadMineralManager()
+        {
+            if (this.mineralManager != null) return;
+            this.mineralManager = this.GetComponentInChildren<PlanetMineralManager>();
+        }
 
         /// <summary>
         /// Updates the planet's visuals based on the assigned data.
@@ -35,6 +48,11 @@ namespace Blackvers.Planet
             this.transform.localScale = new Vector3(scale, scale, 1f);
             
             this.gameObject.name = this.planetData.planetName;
+
+            if (this.mineralManager != null)
+            {
+                this.mineralManager.Initialize();
+            }
         }
 
         [ContextMenu("Sync Visuals")]

@@ -1,6 +1,7 @@
 using UnityEngine;
 using Blackvers.Data;
 using Blackvers.Commons;
+using Blackvers.Inventory;
 
 namespace Blackvers.Ship.MinerShip
 {
@@ -28,6 +29,7 @@ namespace Blackvers.Ship.MinerShip
         public SpriteRenderer modelRenderer;
         public MinerShipMovement movement;
         public MinerShipImpact impact;
+        public MinerInventory minerInventory;
 
         protected override void LoadComponents()
         {
@@ -35,7 +37,14 @@ namespace Blackvers.Ship.MinerShip
             this.LoadModelRenderer();
             this.LoadMovement();
             this.LoadImpact();
+            this.LoadInventory();
             this.LoadDataFromSO();
+        }
+
+        protected virtual void LoadInventory()
+        {
+            if (this.minerInventory != null) return;
+            this.minerInventory = this.transform.Find("Inventory")?.GetComponent<MinerInventory>();
         }
 
         protected virtual void LoadMovement()
@@ -82,16 +91,58 @@ namespace Blackvers.Ship.MinerShip
         {
             if (!this.isFullLoad && collision.transform.parent == this.targetPlanet)
             {
-                this.isFullLoad = true;
-                this.SetState(MinerShipState.ToMotherShip);
+                this.MinePlanet(collision.transform.parent);
                 return;
             }
 
             if (this.isFullLoad && collision.transform.parent == this.motherShip)
             {
-                this.isFullLoad = false;
-                this.SetState(MinerShipState.ToPlanet);
+                this.UnloadMinerals(collision.transform.parent);
             }
+        }
+
+        protected virtual void MinePlanet(Transform planetTransform)
+        {
+            if (this.minerInventory == null) return;
+
+            Blackvers.Planet.PlanetController planet = planetTransform.GetComponent<Blackvers.Planet.PlanetController>();
+            if (planet != null && planet.mineralManager != null)
+            {
+                float availableCapacity = this.minerInventory.MaxCapacity - this.minerInventory.CurrentCapacity;
+                
+                if (availableCapacity > 0)
+                {
+                    var collectedMinerals = planet.mineralManager.CollectMineral(availableCapacity);
+                    foreach (var item in collectedMinerals)
+                    {
+                        this.minerInventory.AddMineral(item.mineralData, item.amount);
+                    }
+                }
+            }
+
+            // Always return to mothership after touching planet
+            this.isFullLoad = true;
+            this.SetState(MinerShipState.ToMotherShip);
+        }
+
+        protected virtual void UnloadMinerals(Transform motherShipTransform)
+        {
+            if (this.minerInventory == null) return;
+
+            MotherShipController msController = MotherShipController.Instance;
+            if (msController != null && msController.Inventory != null)
+            {
+                var itemsToUnload = this.minerInventory.GetAllItems();
+                foreach (var item in itemsToUnload)
+                {
+                    msController.Inventory.AddMineral(item.mineralData, item.amount);
+                }
+            }
+
+            // Clear inventory and go back to mining
+            this.minerInventory.Clear();
+            this.isFullLoad = false;
+            this.SetState(MinerShipState.ToPlanet);
         }
 
         protected virtual void SetState(MinerShipState state)

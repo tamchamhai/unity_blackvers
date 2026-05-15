@@ -85,6 +85,97 @@ namespace Blackvers.EditorTools
             Debug.Log("<color=green>[BlackversEditorTools]</color> Successfully updated radius to 0.5 for all PlanetData assets.");
         }
 
+        [MenuItem("Tools/Generate Default Minerals")]
+        public static void GenerateDefaultMinerals()
+        {
+            string mineralPath = "Assets/__Project/ScriptableObject/Minerals";
+            if (!Directory.Exists(mineralPath))
+            {
+                Directory.CreateDirectory(mineralPath);
+            }
+
+            string[] mineralNames = new string[] 
+            {
+                "Copper Ore", "Iron Ore", "Aluminum Ore", "Gold Ore", "Uranium", "Titanium", "Platinum", "Silicon"
+            };
+
+            float[] baseValues = new float[] { 10, 15, 20, 100, 200, 50, 150, 25 };
+
+            for (int i = 0; i < mineralNames.Length; i++)
+            {
+                string rName = mineralNames[i];
+                string assetName = rName.Replace(" ", "_").ToLower() + "_data.asset";
+                string assetPath = $"{mineralPath}/{assetName}";
+
+                if (File.Exists(assetPath)) continue;
+
+                MineralData data = ScriptableObject.CreateInstance<MineralData>();
+                data.mineralName = rName;
+                data.baseValue = baseValues[i];
+                data.description = $"Raw {rName} mined from planets.";
+
+                AssetDatabase.CreateAsset(data, assetPath);
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log("<color=green>[BlackversEditorTools]</color> Successfully generated default MineralData assets.");
+        }
+
+        [MenuItem("Tools/Assign Default Minerals To Planets")]
+        public static void AssignDefaultMineralsToPlanets()
+        {
+            string[] mineralGuids = AssetDatabase.FindAssets("t:MineralData");
+            if (mineralGuids.Length == 0)
+            {
+                Debug.LogWarning("No MineralData found. Run Generate Default Minerals first.");
+                return;
+            }
+
+            MineralData[] allMinerals = new MineralData[mineralGuids.Length];
+            for (int i = 0; i < mineralGuids.Length; i++)
+            {
+                string rPath = AssetDatabase.GUIDToAssetPath(mineralGuids[i]);
+                allMinerals[i] = AssetDatabase.LoadAssetAtPath<MineralData>(rPath);
+            }
+
+            string[] planetGuids = AssetDatabase.FindAssets("t:PlanetData");
+            foreach (string guid in planetGuids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                PlanetData pData = AssetDatabase.LoadAssetAtPath<PlanetData>(path);
+                if (pData == null) continue;
+
+                // Clear and reassign 1-3 random minerals
+                pData.minerals.Clear();
+                int numMinerals = UnityEngine.Random.Range(1, 4);
+
+                for (int i = 0; i < numMinerals; i++)
+                {
+                    MineralData randomMineral = allMinerals[UnityEngine.Random.Range(0, allMinerals.Length)];
+                    
+                    // Check if already has this mineral
+                    if (pData.minerals.Exists(r => r.mineralData == randomMineral))
+                    {
+                        i--;
+                        continue;
+                    }
+
+                    PlanetMineral pm = new PlanetMineral
+                    {
+                        mineralData = randomMineral,
+                        mineRate = UnityEngine.Random.Range(1f, 5f)
+                    };
+                    pData.minerals.Add(pm);
+                }
+
+                EditorUtility.SetDirty(pData);
+            }
+
+            AssetDatabase.SaveAssets();
+            Debug.Log("<color=green>[BlackversEditorTools]</color> Successfully assigned random minerals to all planets.");
+        }
+
         private static string[] GetSortingLayerNames()
         {
             SortingLayer[] layers = SortingLayer.layers;

@@ -1,4 +1,5 @@
 using UnityEngine;
+using Blackvers.Inventory;
 
 public class MotherShipController : MasterMonoBehaviour
 {   
@@ -6,14 +7,23 @@ public class MotherShipController : MasterMonoBehaviour
     private static MotherShipController _instance;
     public static MotherShipController Instance => _instance;
     [SerializeField] protected MotherShipImpact motherShipImpact;
+    [SerializeField] protected MotherShipInventory motherShipInventory;
+    public MotherShipInventory Inventory => this.motherShipInventory;
     
     protected override void LoadComponents()
     {
         base.LoadComponents();
         this.MakeSingleton();
         this.LoadMotherShipImpact();
+        this.LoadInventory();
     }
     
+    protected virtual void LoadInventory()
+    {
+        if (this.motherShipInventory != null) return;
+        this.motherShipInventory = transform.GetComponentInChildren<MotherShipInventory>();
+    }
+
     protected virtual void MakeSingleton()
     {
         if (_instance != null && _instance != this)
@@ -23,7 +33,6 @@ public class MotherShipController : MasterMonoBehaviour
             return;
         }
         _instance = this;
-        DontDestroyOnLoad(gameObject); // Keep the object alive when switching scenes
     }
 
     protected virtual void LoadMotherShipImpact(){

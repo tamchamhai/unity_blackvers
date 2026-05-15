@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Blackvers.Data;
 using Blackvers.Commons;
 using Blackvers.Ship.MinerShip;
+using Blackvers.Inventory;
 
 namespace Blackvers.Spawner
 {
@@ -106,8 +107,19 @@ namespace Blackvers.Spawner
             this.CreateModel(shipObj, controller);
             this.CreateMovement(shipObj, controller);
             this.CreateImpact(shipObj, controller);
+            this.CreateInventory(shipObj, controller);
 
             controller.Initialize(null, null); // Initial nulls, will be set on spawn
+        }
+
+        protected virtual void CreateInventory(GameObject parent, MinerShipController controller)
+        {
+            GameObject inventoryObj = new GameObject("Inventory");
+            inventoryObj.transform.SetParent(parent.transform);
+            inventoryObj.transform.localPosition = Vector3.zero;
+
+            MinerInventory inventory = inventoryObj.AddComponent<MinerInventory>();
+            controller.minerInventory = inventory;
         }
 
         protected virtual void CreateModel(GameObject parent, MinerShipController controller)

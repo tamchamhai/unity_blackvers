@@ -10,6 +10,7 @@ namespace Blackvers.Data
     {
         public string mineralName;
         public Sprite icon;
-        public float amountPerSecond;
+        public string description;
+        public float baseValue;
     }
 }
