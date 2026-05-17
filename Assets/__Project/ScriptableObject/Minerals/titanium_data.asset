@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: titanium_data
   m_EditorClassIdentifier: Assembly-CSharp::Blackvers.Data.MineralData
   mineralName: Titanium
-  icon: {fileID: 0}
+  icon: {fileID: -528837131520387009, guid: 2b07dceafa9e4cd4c88cfcc00caa7256, type: 3}
   description: Raw Titanium mined from planets.
   baseValue: 50

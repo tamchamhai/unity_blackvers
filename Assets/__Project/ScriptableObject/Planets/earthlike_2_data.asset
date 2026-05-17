@@ -17,7 +17,7 @@ MonoBehaviour:
   radius: 1
   priority: 6
   minerals:
-  - mineralData: {fileID: 11400000, guid: 62af365eed31ed14cb489a55c3c8897c, type: 2}
-    mineRate: 2.655691
-  - mineralData: {fileID: 11400000, guid: c63e404303ef5a04985d10af66a1a2cd, type: 2}
-    mineRate: 1.4180937
+  - mineralData: {fileID: 11400000, guid: a9c59213278e4c049aca469083fff9e0, type: 2}
+    mineRate: 4.307831
+  - mineralData: {fileID: 11400000, guid: 151357351e6b86046aa2d31e24944f90, type: 2}
+    mineRate: 1.623723

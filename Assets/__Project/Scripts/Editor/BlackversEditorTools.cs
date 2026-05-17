@@ -89,10 +89,31 @@ namespace Blackvers.EditorTools
         public static void GenerateDefaultMinerals()
         {
             string mineralPath = "Assets/__Project/ScriptableObject/Minerals";
+            string spritePath = "Assets/__Project/Sprites/Minerals";
+
             if (!Directory.Exists(mineralPath))
             {
                 Directory.CreateDirectory(mineralPath);
             }
+
+            System.Collections.Generic.List<Sprite> allSpritesList = new System.Collections.Generic.List<Sprite>();
+            if (Directory.Exists(spritePath))
+            {
+                string[] textureGuids = AssetDatabase.FindAssets("t:Texture2D", new[] { spritePath });
+                foreach (string guid in textureGuids)
+                {
+                    string path = AssetDatabase.GUIDToAssetPath(guid);
+                    UnityEngine.Object[] assets = AssetDatabase.LoadAllAssetsAtPath(path);
+                    foreach (UnityEngine.Object asset in assets)
+                    {
+                        if (asset is Sprite s)
+                        {
+                            allSpritesList.Add(s);
+                        }
+                    }
+                }
+            }
+            Sprite[] allSprites = allSpritesList.ToArray();
 
             string[] mineralNames = new string[] 
             {
@@ -107,19 +128,63 @@ namespace Blackvers.EditorTools
                 string assetName = rName.Replace(" ", "_").ToLower() + "_data.asset";
                 string assetPath = $"{mineralPath}/{assetName}";
 
-                if (File.Exists(assetPath)) continue;
+                MineralData data;
+                bool isNew = false;
 
-                MineralData data = ScriptableObject.CreateInstance<MineralData>();
-                data.mineralName = rName;
-                data.baseValue = baseValues[i];
-                data.description = $"Raw {rName} mined from planets.";
+                if (File.Exists(assetPath))
+                {
+                    data = AssetDatabase.LoadAssetAtPath<MineralData>(assetPath);
+                }
+                else
+                {
+                    data = ScriptableObject.CreateInstance<MineralData>();
+                    data.mineralName = rName;
+                    data.baseValue = baseValues[i];
+                    data.description = $"Raw {rName} mined from planets.";
+                    isNew = true;
+                }
 
-                AssetDatabase.CreateAsset(data, assetPath);
+                string expectedSpriteName1 = rName;
+                string expectedSpriteName2 = rName.Replace(" ", "_").ToLower();
+                string expectedSpriteName3 = rName.Replace(" ", "");
+                string expectedSpriteName4 = expectedSpriteName2 + "_ore";
+                string expectedSpriteName5 = expectedSpriteName2.Replace("uranium", "unranium");
+                string expectedSpriteName6 = expectedSpriteName4.Replace("uranium", "unranium");
+
+                Sprite matchedSprite = null;
+                foreach (Sprite s in allSprites)
+                {
+                    if (s == null) continue;
+                    if (s.name.Equals(expectedSpriteName1, StringComparison.OrdinalIgnoreCase) ||
+                        s.name.Equals(expectedSpriteName2, StringComparison.OrdinalIgnoreCase) ||
+                        s.name.Equals(expectedSpriteName3, StringComparison.OrdinalIgnoreCase) ||
+                        s.name.Equals(expectedSpriteName4, StringComparison.OrdinalIgnoreCase) ||
+                        s.name.Equals(expectedSpriteName5, StringComparison.OrdinalIgnoreCase) ||
+                        s.name.Equals(expectedSpriteName6, StringComparison.OrdinalIgnoreCase))
+                    {
+                        matchedSprite = s;
+                        break;
+                    }
+                }
+
+                if (matchedSprite != null)
+                {
+                    data.icon = matchedSprite;
+                }
+
+                if (isNew)
+                {
+                    AssetDatabase.CreateAsset(data, assetPath);
+                }
+                else
+                {
+                    EditorUtility.SetDirty(data);
+                }
             }
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("<color=green>[BlackversEditorTools]</color> Successfully generated default MineralData assets.");
+            Debug.Log("<color=green>[BlackversEditorTools]</color> Successfully generated and assigned default Mineral Data assets.");
         }
 
         [MenuItem("Tools/Assign Default Minerals To Planets")]

@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: gold_ore_data
   m_EditorClassIdentifier: Assembly-CSharp::Blackvers.Data.MineralData
   mineralName: Gold Ore
-  icon: {fileID: 0}
+  icon: {fileID: -4968344440199691362, guid: 2b07dceafa9e4cd4c88cfcc00caa7256, type: 3}
   description: Raw Gold Ore mined from planets.
   baseValue: 100

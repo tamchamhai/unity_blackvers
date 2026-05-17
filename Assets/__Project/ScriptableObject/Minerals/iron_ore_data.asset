@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: iron_ore_data
   m_EditorClassIdentifier: Assembly-CSharp::Blackvers.Data.MineralData
   mineralName: Iron Ore
-  icon: {fileID: 0}
+  icon: {fileID: 2858282966663250856, guid: 2b07dceafa9e4cd4c88cfcc00caa7256, type: 3}
   description: Raw Iron Ore mined from planets.
   baseValue: 15

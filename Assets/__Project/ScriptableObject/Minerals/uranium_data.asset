@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: uranium_data
   m_EditorClassIdentifier: Assembly-CSharp::Blackvers.Data.MineralData
   mineralName: Uranium
-  icon: {fileID: 0}
+  icon: {fileID: -2124906177252637370, guid: 2b07dceafa9e4cd4c88cfcc00caa7256, type: 3}
   description: Raw Uranium mined from planets.
   baseValue: 200

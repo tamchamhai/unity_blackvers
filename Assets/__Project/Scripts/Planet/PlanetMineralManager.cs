@@ -52,15 +52,15 @@ namespace Blackvers.Planet
             }
         }
 
-        protected override void Update()
+        protected override void FixedUpdate()
         {
-            base.Update();
+            base.FixedUpdate();
             this.GenerateMinerals();
         }
 
         protected virtual void GenerateMinerals()
         {
-            float dt = Time.deltaTime;
+            float dt = Time.fixedDeltaTime;
             foreach (var minData in this.activeMinerals)
             {
                 minData.currentAmount += minData.mineRate * dt;
