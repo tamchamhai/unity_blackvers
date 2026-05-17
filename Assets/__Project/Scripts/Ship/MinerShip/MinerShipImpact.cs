@@ -26,23 +26,39 @@ namespace Blackvers.Ship.MinerShip
 
         protected virtual void LoadController()
         {
-            if (this.controller != null) return;
+            if (this.controller != null)
+            {
+                Debug.LogWarning(this.transform.name + ": Controller already loaded", this.gameObject);
+                return;
+            }
             this.controller = this.transform.parent.GetComponent<MinerShipController>();
         }
 
         protected virtual void LoadCollider()
         {
-            if (this.circleCollider != null) return;
+            if (this.circleCollider != null)
+            {
+                Debug.LogWarning(this.transform.name + ": CircleCollider already loaded", this.gameObject);
+                return;
+            }
             this.circleCollider = this.GetComponent<CircleCollider2D>();
             this.circleCollider.isTrigger = true;
         }
 
         public virtual void UpdateColliderRadius()
         {
-            if (this.circleCollider == null || this.controller == null || this.controller.modelRenderer == null) return;
+            if (this.circleCollider == null || this.controller == null || this.controller.modelRenderer == null)
+            {
+                Debug.LogWarning(this.transform.name + ": Missing components to update collider radius", this.gameObject);
+                return;
+            }
             
             Sprite sprite = this.controller.modelRenderer.sprite;
-            if (sprite == null) return;
+            if (sprite == null)
+            {
+                Debug.LogWarning(this.transform.name + ": Sprite is null", this.gameObject);
+                return;
+            }
 
             float maxExtent = Mathf.Max(sprite.bounds.extents.x, sprite.bounds.extents.y);
             this.circleCollider.radius = maxExtent;
@@ -56,7 +72,11 @@ namespace Blackvers.Ship.MinerShip
         protected virtual void HandleCollision(Collider2D collision)
         {
             Debug.Log($"[MinerShipImpact] {this.transform.parent.name} collided with: {collision.name}");
-            if (this.controller == null) return;
+            if (this.controller == null)
+            {
+                Debug.LogWarning(this.transform.name + ": Controller is null in HandleCollision", this.gameObject);
+                return;
+            }
 
             // Ignore other miner ships
             if (collision.GetComponent<MinerShipImpact>() != null) return;
@@ -78,7 +98,11 @@ namespace Blackvers.Ship.MinerShip
 
         protected virtual void MinePlanet(Transform planetTransform)
         {
-            if (this.controller.minerInventory == null) return;
+            if (this.controller.minerInventory == null)
+            {
+                Debug.LogWarning(this.transform.name + ": MinerInventory is null in MinePlanet", this.gameObject);
+                return;
+            }
 
             Blackvers.Planet.PlanetController planet = planetTransform.GetComponent<Blackvers.Planet.PlanetController>();
             if (planet != null && planet.mineralManager != null)
@@ -95,14 +119,18 @@ namespace Blackvers.Ship.MinerShip
                 }
             }
 
-            // Always return to mothership after touching planet
+            // Always return to mother-ship after touching planet
             this.controller.IsFullLoad = true;
             this.controller.SetState(MinerShipState.ToMotherShip);
         }
 
         protected virtual void UnloadMinerals(Transform motherShipTransform)
         {
-            if (this.controller.minerInventory == null) return;
+            if (this.controller.minerInventory == null)
+            {
+                Debug.LogWarning(this.transform.name + ": MinerInventory is null in UnloadMinerals", this.gameObject);
+                return;
+            }
 
             MotherShipController msController = MotherShipController.Instance;
             if (msController != null && msController.Inventory != null)
