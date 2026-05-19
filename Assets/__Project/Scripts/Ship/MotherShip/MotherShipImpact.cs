@@ -3,20 +3,20 @@ using UnityEngine;
 public class MotherShipImpact : MasterMonoBehaviour
 {
     [SerializeField] protected Rigidbody2D rigidBody;
-    [SerializeField] protected EdgeCollider2D edgeCollider;
+    [SerializeField] protected BoxCollider2D boxCollider;
 
     protected override void LoadComponents()
     {
         base.LoadComponents();
-        this.LoadCollider();
+        this.LoadBoxCollider();
         this.LoadRigidBody();
     }
 
-    protected virtual void LoadCollider()
+    protected virtual void LoadBoxCollider()
     {
-        if (this.edgeCollider != null) return;
-        this.edgeCollider = transform.GetComponent<EdgeCollider2D>();
-        this.edgeCollider.isTrigger = true;
+        if (this.boxCollider != null) return;
+        this.boxCollider = transform.GetComponent<BoxCollider2D>();
+        this.boxCollider.isTrigger = true;
     }
 
     protected virtual void LoadRigidBody()
@@ -24,5 +24,10 @@ public class MotherShipImpact : MasterMonoBehaviour
         if   (this.rigidBody != null) return;
         this.rigidBody = transform.GetComponent<Rigidbody2D>();
         this.rigidBody.bodyType = RigidbodyType2D.Kinematic;
+    }
+
+    protected virtual void OnMouseDown()
+    {
+        MotherShipController.Instance.OnMotherShipClicked?.Invoke();
     }
 }

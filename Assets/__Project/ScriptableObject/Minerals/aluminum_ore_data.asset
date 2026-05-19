@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: aluminum_ore_data
   m_EditorClassIdentifier: Assembly-CSharp::Blackvers.Data.MineralData
   mineralName: Aluminum Ore
-  icon: {fileID: 4621740753562235160, guid: 2b07dceafa9e4cd4c88cfcc00caa7256, type: 3}
+  icon: {fileID: 21300000, guid: 419c53c27a6f85545bb7fe4ec861613c, type: 3}
   description: Raw Aluminum Ore mined from planets.
   baseValue: 20

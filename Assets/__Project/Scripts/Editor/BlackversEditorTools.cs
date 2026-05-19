@@ -155,12 +155,14 @@ namespace Blackvers.EditorTools
                 foreach (Sprite s in allSprites)
                 {
                     if (s == null) continue;
-                    if (s.name.Equals(expectedSpriteName1, StringComparison.OrdinalIgnoreCase) ||
-                        s.name.Equals(expectedSpriteName2, StringComparison.OrdinalIgnoreCase) ||
-                        s.name.Equals(expectedSpriteName3, StringComparison.OrdinalIgnoreCase) ||
-                        s.name.Equals(expectedSpriteName4, StringComparison.OrdinalIgnoreCase) ||
-                        s.name.Equals(expectedSpriteName5, StringComparison.OrdinalIgnoreCase) ||
-                        s.name.Equals(expectedSpriteName6, StringComparison.OrdinalIgnoreCase))
+                    
+                    // The sprite might have a suffix like '_0' because it's a sliced sprite, so we use StartsWith
+                    if (s.name.StartsWith(expectedSpriteName1, StringComparison.OrdinalIgnoreCase) ||
+                        s.name.StartsWith(expectedSpriteName2, StringComparison.OrdinalIgnoreCase) ||
+                        s.name.StartsWith(expectedSpriteName3, StringComparison.OrdinalIgnoreCase) ||
+                        s.name.StartsWith(expectedSpriteName4, StringComparison.OrdinalIgnoreCase) ||
+                        s.name.StartsWith(expectedSpriteName5, StringComparison.OrdinalIgnoreCase) ||
+                        s.name.StartsWith(expectedSpriteName6, StringComparison.OrdinalIgnoreCase))
                     {
                         matchedSprite = s;
                         break;

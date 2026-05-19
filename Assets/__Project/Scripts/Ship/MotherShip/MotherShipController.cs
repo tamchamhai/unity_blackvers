@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 using Blackvers.Inventory;
 
 public class MotherShipController : MasterMonoBehaviour
@@ -9,6 +10,8 @@ public class MotherShipController : MasterMonoBehaviour
     [SerializeField] protected MotherShipImpact motherShipImpact;
     [SerializeField] protected MotherShipInventory motherShipInventory;
     public MotherShipInventory Inventory => this.motherShipInventory;
+    
+    public Action OnMotherShipClicked;
     
     protected override void LoadComponents()
     {

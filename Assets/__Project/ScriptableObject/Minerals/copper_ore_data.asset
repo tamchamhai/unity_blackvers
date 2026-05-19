@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: copper_ore_data
   m_EditorClassIdentifier: Assembly-CSharp::Blackvers.Data.MineralData
   mineralName: Copper Ore
-  icon: {fileID: -2509673791053247311, guid: 2b07dceafa9e4cd4c88cfcc00caa7256, type: 3}
+  icon: {fileID: 21300000, guid: dd293e114d1b18c43b08625f1c8f3feb, type: 3}
   description: Raw Copper Ore mined from planets.
   baseValue: 10

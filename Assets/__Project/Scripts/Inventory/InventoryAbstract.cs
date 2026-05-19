@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 using System.Collections.Generic;
 using Blackvers.Data;
 using System.Linq;
@@ -20,6 +21,7 @@ namespace Blackvers.Inventory
         public virtual float MaxCapacity => this.maxCapacity;
         public virtual float CurrentCapacity => this.currentCapacity;
         public virtual bool IsFull => this.currentCapacity >= this.maxCapacity;
+        public Action OnInventoryChanged;
 
         protected override void Start()
         {
@@ -50,6 +52,7 @@ namespace Blackvers.Inventory
             }
 
             this.currentCapacity += amountToAdd;
+            this.OnInventoryChanged?.Invoke();
             return amountToAdd;
         }
 
@@ -73,6 +76,7 @@ namespace Blackvers.Inventory
                 this.items.Remove(item);
             }
 
+            this.OnInventoryChanged?.Invoke();
             return amountToRemove;
         }
 
@@ -87,6 +91,7 @@ namespace Blackvers.Inventory
         {
             this.items.Clear();
             this.currentCapacity = 0f;
+            this.OnInventoryChanged?.Invoke();
         }
 
         public virtual List<InventoryItem> GetAllItems()
