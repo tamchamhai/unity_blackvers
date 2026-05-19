@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using Blackvers.Inventory;
+using Blackvers.Managers;
 
 public class MotherShipController : MasterMonoBehaviour
 {   
@@ -44,6 +45,31 @@ public class MotherShipController : MasterMonoBehaviour
         if (this.motherShipImpact == null)
         {
             Debug.LogWarning(transform.name + ": MotherShipImpact not found", gameObject);
+        }
+    }
+
+    protected override void Start()
+    {
+        base.Start();
+        if (InputManager.Instance != null)
+        {
+            InputManager.Instance.OnInteractObject += this.HandleInteractObject;
+        }
+    }
+
+    protected virtual void OnDestroy()
+    {
+        if (InputManager.Instance != null)
+        {
+            InputManager.Instance.OnInteractObject -= this.HandleInteractObject;
+        }
+    }
+
+    protected virtual void HandleInteractObject(GameObject obj)
+    {
+        if (this.motherShipImpact != null && obj == this.motherShipImpact.gameObject)
+        {
+            this.OnMotherShipClicked?.Invoke();
         }
     }
 }

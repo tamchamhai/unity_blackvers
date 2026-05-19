@@ -36,4 +36,14 @@ public class MasterMonoBehaviour : MonoBehaviour
     {
         // Override this for LateUpdate logic
     }
+
+    protected virtual void OnEnable()
+    {
+        // Override this for OnEnable logic
+    }
+
+    protected virtual void OnDisable()
+    {
+        // Override this for OnDisable logic
+    }
 }

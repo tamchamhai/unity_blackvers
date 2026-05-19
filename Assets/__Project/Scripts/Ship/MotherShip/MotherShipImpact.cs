@@ -26,8 +26,4 @@ public class MotherShipImpact : MasterMonoBehaviour
         this.rigidBody.bodyType = RigidbodyType2D.Kinematic;
     }
 
-    protected virtual void OnMouseDown()
-    {
-        MotherShipController.Instance.OnMotherShipClicked?.Invoke();
-    }
 }
