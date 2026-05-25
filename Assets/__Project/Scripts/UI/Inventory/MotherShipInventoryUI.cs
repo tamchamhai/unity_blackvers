@@ -34,6 +34,9 @@ namespace Blackvers.UI.Inventory
         [Header("Runtime")]
         [SerializeField] protected List<InventoryItemUI> activeItemUIs = new List<InventoryItemUI>();
 
+        [Header("Object Pooling")]
+        [SerializeField] protected List<InventoryItemUI> itemUIPool = new List<InventoryItemUI>();
+
         [Header("Tab System Settings (Drag and Drop in Inspector)")]
         [Tooltip("Button for the Ores tab.")]
         [SerializeField] protected Button tabOresButton;
@@ -66,6 +69,9 @@ namespace Blackvers.UI.Inventory
 
         // Controls whether the entire inventory area blocks raycasts (input).
         private CanvasGroup _canvasGroup;
+
+        // Flag to reset vertical scroll position to 0 on open/close or tab switches
+        protected bool _shouldResetScrollY = false;
 
         protected override void LoadComponents()
         {
@@ -283,6 +289,7 @@ namespace Blackvers.UI.Inventory
         {
             this._currentTab = newTab;
             this.UpdateTabVisuals();
+            this._shouldResetScrollY = true;
             this.RefreshUI();
         }
 
@@ -323,7 +330,11 @@ namespace Blackvers.UI.Inventory
 
             bool isOpening = !this.mainPanel.activeSelf;
             this.SetInventoryVisible(isOpening);
-            if (isOpening) this.RefreshUI();
+            if (isOpening)
+            {
+                this._shouldResetScrollY = true;
+                this.RefreshUI();
+            }
         }
 
         public virtual void CloseUI()
@@ -343,27 +354,92 @@ namespace Blackvers.UI.Inventory
                 this._canvasGroup.blocksRaycasts = isVisible;
                 this._canvasGroup.interactable   = isVisible;
             }
+
+            if (!isVisible)
+            {
+                this._shouldResetScrollY = true;
+
+                // Reset ScrollRect position to 1f (top) physically when closing
+                if (this.contentContainer != null)
+                {
+                    ScrollRect scrollRect = this.contentContainer.GetComponentInParent<ScrollRect>();
+                    if (scrollRect != null)
+                    {
+                        scrollRect.verticalNormalizedPosition = 1f;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Retrieves an inactive UI element from the pool or instantiates a new one if none are available.
+        /// Matches the base Spawner.cs design pattern.
+        /// </summary>
+        protected virtual InventoryItemUI GetOrCreateItemUI()
+        {
+            foreach (InventoryItemUI itemUI in this.itemUIPool)
+            {
+                if (itemUI != null && !itemUI.gameObject.activeSelf)
+                {
+                    return itemUI;
+                }
+            }
+
+            if (this.itemPrefab == null) return null;
+
+            // Instantiate without parent first, set inactive, then set parent to avoid layout glitches!
+            GameObject newObj = Instantiate(this.itemPrefab);
+            newObj.SetActive(false);
+            newObj.transform.SetParent(this.contentContainer, false);
+
+            InventoryItemUI newItemUI = newObj.GetComponent<InventoryItemUI>();
+            if (newItemUI != null)
+            {
+                this.itemUIPool.Add(newItemUI);
+            }
+
+            return newItemUI;
+        }
+
+        /// <summary>
+        /// Deactivates all UI elements in the pool, returning them for future reuse.
+        /// </summary>
+        protected virtual void DespawnAll()
+        {
+            foreach (InventoryItemUI itemUI in this.itemUIPool)
+            {
+                if (itemUI != null)
+                {
+                    itemUI.gameObject.SetActive(false);
+                }
+            }
+
+            this.activeItemUIs.Clear();
         }
 
         protected virtual void ClearUI()
         {
-            foreach (InventoryItemUI itemUI in this.activeItemUIs)
-            {
-                if (itemUI != null) Destroy(itemUI.gameObject);
-            }
-            this.activeItemUIs.Clear();
+            this.DespawnAll();
         }
 
         /// <summary>
         /// Refreshes the items list showing only elements corresponding to the active tab type.
+        /// Uses advanced Object Pooling to reuse existing UI elements without deactivating active ones,
+        /// ensuring the ScrollRect height never collapses to 0 and preventing scroll position reset.
         /// </summary>
         public virtual void RefreshUI()
         {
-            this.ClearUI();
-
             if (MotherShipController.Instance == null || MotherShipController.Instance.Inventory == null) return;
 
             MotherShipInventory inventory = MotherShipController.Instance.Inventory;
+
+            // Save the current vertical scroll position in absolute pixels
+            RectTransform contentRect = this.contentContainer != null ? this.contentContainer.GetComponent<RectTransform>() : null;
+            float savedScrollY = 0f;
+            if (contentRect != null && !this._shouldResetScrollY)
+            {
+                savedScrollY = contentRect.anchoredPosition.y;
+            }
 
             // Determine target ItemType filter based on current tab
             ItemType targetType = ItemType.Ore;
@@ -376,22 +452,103 @@ namespace Blackvers.UI.Inventory
                 targetType = ItemType.Item;
             }
 
+            // Get filtered list of items to display
+            List<InventoryItem> itemsToDisplay = new List<InventoryItem>();
             foreach (InventoryItem item in inventory.GetAllItems())
             {
                 if (item.mineralData == null || item.amount <= 0) continue;
                 if (item.mineralData.Type != targetType) continue; // Filter by type
+                itemsToDisplay.Add(item);
+            }
 
-                GameObject newObj = Instantiate(this.itemPrefab, this.contentContainer);
-                newObj.SetActive(true);
+            this.activeItemUIs.Clear();
 
-                InventoryItemUI itemUI = newObj.GetComponent<InventoryItemUI>();
+            int requiredCount = itemsToDisplay.Count;
+            int poolCount = this.itemUIPool.Count;
+
+            // Ensure we have enough instantiated elements in the pool
+            if (poolCount < requiredCount)
+            {
+                int deficit = requiredCount - poolCount;
+                for (int i = 0; i < deficit; i++)
+                {
+                    if (this.itemPrefab == null) break;
+
+                    // Instantiate without parent first, set inactive, then set parent to avoid layout glitches!
+                    GameObject newObj = Instantiate(this.itemPrefab);
+                    newObj.SetActive(false);
+                    newObj.transform.SetParent(this.contentContainer, false);
+
+                    InventoryItemUI newItemUI = newObj.GetComponent<InventoryItemUI>();
+                    if (newItemUI != null)
+                    {
+                        this.itemUIPool.Add(newItemUI);
+                    }
+                }
+            }
+
+            // Update active elements and deactivate the rest
+            for (int i = 0; i < this.itemUIPool.Count; i++)
+            {
+                InventoryItemUI itemUI = this.itemUIPool[i];
                 if (itemUI == null) continue;
 
-                itemUI.UpdateUI(item.mineralData, item.amount);
-                this.activeItemUIs.Add(itemUI);
+                if (i < requiredCount)
+                {
+                    // For required items, update and make sure they are active
+                    InventoryItem item = itemsToDisplay[i];
+
+                    // Crucial: Update the UI data FIRST while the item is potentially inactive
+                    // to prevent intermediate layout passes with dirty/default values.
+                    itemUI.UpdateUI(item.mineralData, item.amount);
+
+                    // Only SetActive(true) if currently inactive to avoid triggering layout dirty flags
+                    if (!itemUI.gameObject.activeSelf)
+                    {
+                        itemUI.gameObject.SetActive(true);
+                    }
+
+                    this.activeItemUIs.Add(itemUI);
+                }
+                else
+                {
+                    // For extra items in the pool, make sure they are inactive
+                    if (itemUI.gameObject.activeSelf)
+                    {
+                        itemUI.gameObject.SetActive(false);
+                    }
+                }
             }
 
             this.UpdateCapacityText(inventory);
+
+            // Force immediate layout update and restore absolute scroll position
+            if (contentRect != null)
+            {
+                // Force Canvas update first
+                Canvas.ForceUpdateCanvases();
+
+                // Force layout rebuilder to immediately compute sizes of the content container
+                LayoutRebuilder.ForceRebuildLayoutImmediate(contentRect);
+
+                ScrollRect scrollRect = this.contentContainer.GetComponentInParent<ScrollRect>();
+                if (this._shouldResetScrollY)
+                {
+                    if (scrollRect != null)
+                    {
+                        scrollRect.verticalNormalizedPosition = 1f;
+                    }
+                }
+                else
+                {
+                    // Restore the anchored position
+                    Vector2 pos = contentRect.anchoredPosition;
+                    pos.y = savedScrollY;
+                    contentRect.anchoredPosition = pos;
+                }
+
+                this._shouldResetScrollY = false;
+            }
         }
 
         /// <summary>

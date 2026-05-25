@@ -71,7 +71,6 @@ namespace Blackvers.Ship.MinerShip
 
         protected virtual void HandleCollision(Collider2D collision)
         {
-            Debug.Log($"[MinerShipImpact] {this.transform.parent.name} collided with: {collision.name}");
             if (this.controller == null)
             {
                 Debug.LogWarning(this.transform.name + ": Controller is null in HandleCollision", this.gameObject);
