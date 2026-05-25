@@ -1,14 +1,27 @@
 using UnityEngine;
+using UnityEngine.UI;
 using System.Collections.Generic;
 using Blackvers.Inventory;
+using Blackvers.Data;
 using TMPro;
 
 namespace Blackvers.UI.Inventory
 {
     /// <summary>
-    /// Manages the UI display of the MotherShip's inventory, including item list,
-    /// capacity text, and open/close state. Uses a CanvasGroup to fully disable
-    /// raycasting when closed, preventing invisible panels from blocking world input.
+    /// Type of inventory tabs.
+    /// </summary>
+    public enum InventoryTab
+    {
+        Ores,
+        Bars,
+        Items
+    }
+
+    /// <summary>
+    /// Manages the UI display of the MotherShip's inventory, with a tab system
+    /// separating Ores, Metal Bars, and Crafted Items.
+    /// Tracks separate capacity limits and individual full states for each panel.
+    /// Uses a CanvasGroup to fully disable raycasting when closed.
     /// </summary>
     public class MotherShipInventoryUI : MasterMonoBehaviour
     {
@@ -21,9 +34,37 @@ namespace Blackvers.UI.Inventory
         [Header("Runtime")]
         [SerializeField] protected List<InventoryItemUI> activeItemUIs = new List<InventoryItemUI>();
 
+        [Header("Tab System Settings (Drag and Drop in Inspector)")]
+        [Tooltip("Button for the Ores tab.")]
+        [SerializeField] protected Button tabOresButton;
+        
+        [Tooltip("Button for the Bars tab.")]
+        [SerializeField] protected Button tabBarsButton;
+        
+        [Tooltip("Button for the Items tab.")]
+        [SerializeField] protected Button tabItemsButton;
+
+        [Tooltip("TextMeshPro text for the Ores tab.")]
+        [SerializeField] protected TextMeshProUGUI tabOresText;
+
+        [Tooltip("TextMeshPro text for the Bars tab.")]
+        [SerializeField] protected TextMeshProUGUI tabBarsText;
+
+        [Tooltip("TextMeshPro text for the Items tab.")]
+        [SerializeField] protected TextMeshProUGUI tabItemsText;
+
+        [Header("Tab Visual Settings")]
+        [SerializeField] protected Color activeTabColor = new Color(0.12f, 0.38f, 0.18f, 1f); // Sleek Emerald
+        [SerializeField] protected Color inactiveTabColor = new Color(0.18f, 0.18f, 0.18f, 0.9f); // Dark Gray
+        [SerializeField] protected Color activeTextColor = new Color(0.85f, 1f, 0.85f, 1f);
+        [SerializeField] protected Color inactiveTextColor = new Color(0.7f, 0.7f, 0.7f, 1f);
+
+        // Runtime dictionary references for easy state management
+        protected Dictionary<InventoryTab, Button> tabButtons = new Dictionary<InventoryTab, Button>();
+        protected Dictionary<InventoryTab, TextMeshProUGUI> tabTexts = new Dictionary<InventoryTab, TextMeshProUGUI>();
+        private InventoryTab _currentTab = InventoryTab.Ores;
+
         // Controls whether the entire inventory area blocks raycasts (input).
-        // Setting blocksRaycasts = false when closed prevents the invisible parent
-        // container from intercepting touches and blocking camera pan/zoom.
         private CanvasGroup _canvasGroup;
 
         protected override void LoadComponents()
@@ -34,6 +75,7 @@ namespace Blackvers.UI.Inventory
             this.LoadContentContainer();
             this.LoadCapacityText();
             this.LoadItemPrefab();
+            this.LoadTabComponents();
         }
 
         protected virtual void LoadCanvasGroup()
@@ -92,9 +134,67 @@ namespace Blackvers.UI.Inventory
 #endif
         }
 
+        /// <summary>
+        /// Dedicated component loading function for auto-populating tab elements if present in the hierarchy.
+        /// Finds the Container/TabsContainer path and maps the 1st, 2nd, and 3rd children directly.
+        /// Automatically attaches a Button component if it is missing from the GameObject!
+        /// </summary>
+        protected virtual void LoadTabComponents()
+        {
+            Transform container = this.transform.Find("Container");
+            if (container == null) return;
+
+            Transform tabsContainer = container.Find("TabsContainer");
+            if (tabsContainer == null) return;
+
+            // Map tabs by children index in hierarchy order (0 = Ores, 1 = Bars, 2 = Items)
+            if (tabsContainer.childCount >= 1)
+            {
+                Transform child0 = tabsContainer.GetChild(0);
+                if (child0 != null)
+                {
+                    this.tabOresButton = child0.GetComponent<Button>();
+                    if (this.tabOresButton == null)
+                    {
+                        this.tabOresButton = child0.gameObject.AddComponent<Button>();
+                    }
+                    this.tabOresText = child0.GetComponentInChildren<TextMeshProUGUI>();
+                }
+            }
+
+            if (tabsContainer.childCount >= 2)
+            {
+                Transform child1 = tabsContainer.GetChild(1);
+                if (child1 != null)
+                {
+                    this.tabBarsButton = child1.GetComponent<Button>();
+                    if (this.tabBarsButton == null)
+                    {
+                        this.tabBarsButton = child1.gameObject.AddComponent<Button>();
+                    }
+                    this.tabBarsText = child1.GetComponentInChildren<TextMeshProUGUI>();
+                }
+            }
+
+            if (tabsContainer.childCount >= 3)
+            {
+                Transform child2 = tabsContainer.GetChild(2);
+                if (child2 != null)
+                {
+                    this.tabItemsButton = child2.GetComponent<Button>();
+                    if (this.tabItemsButton == null)
+                    {
+                        this.tabItemsButton = child2.gameObject.AddComponent<Button>();
+                    }
+                    this.tabItemsText = child2.GetComponentInChildren<TextMeshProUGUI>();
+                }
+            }
+        }
+
         protected override void Start()
         {
             base.Start();
+            this.InitializeTabSystem();
             this.SubscribeToEvents();
             this.RefreshUI();
             this.CloseUI();
@@ -129,6 +229,94 @@ namespace Blackvers.UI.Inventory
             MotherShipController.Instance.OnMotherShipClicked -= this.ToggleUI;
         }
 
+        /// <summary>
+        /// Registers click listeners and builds internal references for the drag-and-drop tab components.
+        /// </summary>
+        protected virtual void InitializeTabSystem()
+        {
+            this.tabButtons.Clear();
+            this.tabTexts.Clear();
+
+            // Register Ores Tab
+            if (this.tabOresButton != null)
+            {
+                this.tabOresButton.onClick.RemoveAllListeners();
+                this.tabOresButton.onClick.AddListener(() => this.SwitchTab(InventoryTab.Ores));
+                this.tabButtons.Add(InventoryTab.Ores, this.tabOresButton);
+            }
+            if (this.tabOresText != null)
+            {
+                this.tabTexts.Add(InventoryTab.Ores, this.tabOresText);
+            }
+
+            // Register Bars Tab
+            if (this.tabBarsButton != null)
+            {
+                this.tabBarsButton.onClick.RemoveAllListeners();
+                this.tabBarsButton.onClick.AddListener(() => this.SwitchTab(InventoryTab.Bars));
+                this.tabButtons.Add(InventoryTab.Bars, this.tabBarsButton);
+            }
+            if (this.tabBarsText != null)
+            {
+                this.tabTexts.Add(InventoryTab.Bars, this.tabBarsText);
+            }
+
+            // Register Items Tab
+            if (this.tabItemsButton != null)
+            {
+                this.tabItemsButton.onClick.RemoveAllListeners();
+                this.tabItemsButton.onClick.AddListener(() => this.SwitchTab(InventoryTab.Items));
+                this.tabButtons.Add(InventoryTab.Items, this.tabItemsButton);
+            }
+            if (this.tabItemsText != null)
+            {
+                this.tabTexts.Add(InventoryTab.Items, this.tabItemsText);
+            }
+
+            this.UpdateTabVisuals();
+        }
+
+        /// <summary>
+        /// Switches the currently displayed inventory tab.
+        /// </summary>
+        public virtual void SwitchTab(InventoryTab newTab)
+        {
+            this._currentTab = newTab;
+            this.UpdateTabVisuals();
+            this.RefreshUI();
+        }
+
+        /// <summary>
+        /// Highlights the active tab button using customizable visual variables from the Inspector.
+        /// </summary>
+        protected virtual void UpdateTabVisuals()
+        {
+            foreach (var kvp in this.tabButtons)
+            {
+                Image img = kvp.Value.GetComponent<Image>();
+                TextMeshProUGUI txt = this.tabTexts.ContainsKey(kvp.Key) ? this.tabTexts[kvp.Key] : null;
+
+                if (kvp.Key == this._currentTab)
+                {
+                    if (img != null) img.color = this.activeTabColor;
+                    if (txt != null)
+                    {
+                        txt.fontStyle = FontStyles.Bold;
+                        txt.color = this.activeTextColor;
+                    }
+                }
+                else
+                {
+                    if (img != null) img.color = this.inactiveTabColor;
+                    if (txt != null)
+                    {
+                        txt.fontStyle = FontStyles.Normal;
+                        txt.color = this.inactiveTextColor;
+                    }
+                }
+            }
+        }
+
         public virtual void ToggleUI()
         {
             if (this.mainPanel == null) return;
@@ -143,11 +331,6 @@ namespace Blackvers.UI.Inventory
             this.SetInventoryVisible(false);
         }
 
-        /// <summary>
-        /// Sets the visibility and raycast state of the inventory panel.
-        /// When hidden, raycasting is disabled on the CanvasGroup so that the invisible
-        /// parent container does not intercept world-space touch inputs (camera pan/zoom).
-        /// </summary>
         protected virtual void SetInventoryVisible(bool isVisible)
         {
             if (this.mainPanel != null)
@@ -171,6 +354,9 @@ namespace Blackvers.UI.Inventory
             this.activeItemUIs.Clear();
         }
 
+        /// <summary>
+        /// Refreshes the items list showing only elements corresponding to the active tab type.
+        /// </summary>
         public virtual void RefreshUI()
         {
             this.ClearUI();
@@ -179,9 +365,21 @@ namespace Blackvers.UI.Inventory
 
             MotherShipInventory inventory = MotherShipController.Instance.Inventory;
 
+            // Determine target ItemType filter based on current tab
+            ItemType targetType = ItemType.Ore;
+            if (this._currentTab == InventoryTab.Bars)
+            {
+                targetType = ItemType.Bar;
+            }
+            else if (this._currentTab == InventoryTab.Items)
+            {
+                targetType = ItemType.Item;
+            }
+
             foreach (InventoryItem item in inventory.GetAllItems())
             {
                 if (item.mineralData == null || item.amount <= 0) continue;
+                if (item.mineralData.Type != targetType) continue; // Filter by type
 
                 GameObject newObj = Instantiate(this.itemPrefab, this.contentContainer);
                 newObj.SetActive(true);
@@ -196,10 +394,31 @@ namespace Blackvers.UI.Inventory
             this.UpdateCapacityText(inventory);
         }
 
+        /// <summary>
+        /// Updates the capacity text dynamically to reflect the current tab's limits.
+        /// </summary>
         protected virtual void UpdateCapacityText(MotherShipInventory inventory)
         {
             if (this.capacityText == null) return;
-            this.capacityText.text = $"Capacity: {inventory.CurrentCapacity:F0} / {inventory.MaxCapacity:F0}";
+            
+            ItemType targetType = ItemType.Ore;
+            string prefix = "Ores";
+            
+            if (this._currentTab == InventoryTab.Bars)
+            {
+                targetType = ItemType.Bar;
+                prefix = "Bars";
+            }
+            else if (this._currentTab == InventoryTab.Items)
+            {
+                targetType = ItemType.Item;
+                prefix = "Items";
+            }
+
+            float current = inventory.GetCurrentCapacity(targetType);
+            float max = inventory.GetMaxCapacity(targetType);
+            
+            this.capacityText.text = $"{prefix} Capacity: {current:F0} / {max:F0}";
         }
     }
 }
