@@ -82,59 +82,37 @@ namespace Blackvers.UI.Inventory
         }
 
         /// <summary>
-        /// Dedicated component loading function for auto-populating tab elements if present in the hierarchy.
-        /// Finds the Container/TabsContainer path and maps the 1st, 2nd, and 3rd children directly.
-        /// Automatically attaches a Button component if it is missing from the GameObject.
+        /// Dedicated component loading for TopNavigationController.
         /// </summary>
-        protected virtual void LoadTabComponents()
+        protected virtual void LoadTopNavigation()
         {
+            if (this.topNavigation != null) return;
             Transform container = this.transform.Find("Container");
             if (container == null) return;
 
-            Transform tabsContainer = container.Find("TabsContainer");
-            if (tabsContainer == null) return;
-
-            // Map tabs by children index in hierarchy order (0 = Ores, 1 = Bars, 2 = Items)
-            if (tabsContainer.childCount >= 1)
+            Transform topNav = container.Find("Top_Navigation");
+            if (topNav != null)
             {
-                Transform child0 = tabsContainer.GetChild(0);
-                if (child0 != null)
-                {
-                    this.tabOresButton = child0.GetComponent<Button>();
-                    if (this.tabOresButton == null)
-                    {
-                        this.tabOresButton = child0.gameObject.AddComponent<Button>();
-                    }
-                    this.tabOresText = child0.GetComponentInChildren<TextMeshProUGUI>();
-                }
+                this.topNavigation = topNav.GetComponent<TopNavigationController>();
             }
+        }
 
-            if (tabsContainer.childCount >= 2)
-            {
-                Transform child1 = tabsContainer.GetChild(1);
-                if (child1 != null)
-                {
-                    this.tabBarsButton = child1.GetComponent<Button>();
-                    if (this.tabBarsButton == null)
-                    {
-                        this.tabBarsButton = child1.gameObject.AddComponent<Button>();
-                    }
-                    this.tabBarsText = child1.GetComponentInChildren<TextMeshProUGUI>();
-                }
-            }
+        /// <summary>
+        /// Dedicated component loading for LeftSidebarController.
+        /// </summary>
+        protected virtual void LoadLeftSidebar()
+        {
+            if (this.leftSidebar != null) return;
+            Transform container = this.transform.Find("Container");
+            if (container == null) return;
 
-            if (tabsContainer.childCount >= 3)
+            Transform mainContent = container.Find("Main_Content_Area");
+            if (mainContent == null) return;
+
+            Transform sidebar = mainContent.Find("Left_Sidebar");
+            if (sidebar != null)
             {
-                Transform child2 = tabsContainer.GetChild(2);
-                if (child2 != null)
-                {
-                    this.tabItemsButton = child2.GetComponent<Button>();
-                    if (this.tabItemsButton == null)
-                    {
-                        this.tabItemsButton = child2.gameObject.AddComponent<Button>();
-                    }
-                    this.tabItemsText = child2.GetComponentInChildren<TextMeshProUGUI>();
-                }
+                this.leftSidebar = sidebar.GetComponent<LeftSidebarController>();
             }
         }
     }

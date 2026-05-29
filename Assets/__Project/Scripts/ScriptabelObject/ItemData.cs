@@ -3,16 +3,6 @@ using UnityEngine;
 namespace Blackvers.Data
 {
     /// <summary>
-    /// Type of items in the game.
-    /// </summary>
-    public enum ItemType
-    {
-        Ore,
-        Bar,
-        Item
-    }
-
-    /// <summary>
     /// Abstract base ScriptableObject for all types of items (Ores, Metal Bars, Crafted Items).
     /// </summary>
     [CreateAssetMenu(fileName = "ItemData", menuName = "Blackvers/Item Data")]

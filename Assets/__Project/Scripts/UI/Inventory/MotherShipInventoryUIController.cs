@@ -14,86 +14,45 @@ namespace Blackvers.UI.Inventory
     public partial class MotherShipInventoryUI
     {
         /// <summary>
-        /// Registers a single tab button and its text element to the tab system.
-        /// </summary>
-        protected virtual void RegisterTab(InventoryTab tab, Button button, TextMeshProUGUI text)
-        {
-            if (button != null)
-            {
-                button.onClick.RemoveAllListeners();
-                button.onClick.AddListener(() => this.SwitchTab(tab));
-                this.tabButtons.Add(tab, button);
-            }
-
-            if (text != null)
-            {
-                this.tabTexts.Add(tab, text);
-            }
-        }
-
-        /// <summary>
-        /// Registers click listeners and builds internal references for the drag-and-drop tab components.
+        /// Registers click listeners and builds internal references for the navigation and sidebar components.
         /// </summary>
         protected virtual void InitializeTabSystem()
         {
-            this.tabButtons.Clear();
-            this.tabTexts.Clear();
+            if (this.topNavigation != null)
+            {
+                this.topNavigation.OnTabSelected += this.HandleMainTabSelected;
+            }
 
-            this.RegisterTab(InventoryTab.Ores, this.tabOresButton, this.tabOresText);
-            this.RegisterTab(InventoryTab.Bars, this.tabBarsButton, this.tabBarsText);
-            this.RegisterTab(InventoryTab.Items, this.tabItemsButton, this.tabItemsText);
+            if (this.leftSidebar != null)
+            {
+                this.leftSidebar.OnSubTabSelected += this.HandleSubTabSelected;
+            }
 
-            this.UpdateTabVisuals();
+            // Initially set panel active states based on current selected tab
+            if (this.topNavigation != null)
+            {
+                this.HandleMainTabSelected(this.topNavigation.CurrentTab);
+            }
         }
 
         /// <summary>
-        /// Switches the currently displayed inventory tab.
+        /// Handles switching of the main top navigation tabs.
         /// </summary>
-        public virtual void SwitchTab(InventoryTab newTab)
+        protected virtual void HandleMainTabSelected(MainTab tab)
         {
-            this._currentTab = newTab;
-            this.UpdateTabVisuals();
+            if (tab != MainTab.Inventory) return;
+
             this._shouldResetScrollY = true;
             this.RefreshUI();
         }
 
         /// <summary>
-        /// Highlights the active tab button using customizable visual variables from the Inspector.
+        /// Handles switching of the left sidebar inventory sub-tabs.
         /// </summary>
-        protected virtual void UpdateTabVisuals()
+        protected virtual void HandleSubTabSelected(InventorySubTab subTab)
         {
-            foreach (KeyValuePair<InventoryTab, Button> keyValuePair in this.tabButtons)
-            {
-                Image tabImage = keyValuePair.Value.GetComponent<Image>();
-                TextMeshProUGUI tabTextComponent = this.tabTexts.ContainsKey(keyValuePair.Key) ? this.tabTexts[keyValuePair.Key] : null;
-
-                if (keyValuePair.Key == this._currentTab)
-                {
-                    if (tabImage != null)
-                    {
-                        tabImage.color = this.activeTabColor;
-                    }
-
-                    if (tabTextComponent != null)
-                    {
-                        tabTextComponent.fontStyle = FontStyles.Bold;
-                        tabTextComponent.color = this.activeTextColor;
-                    }
-                }
-                else
-                {
-                    if (tabImage != null)
-                    {
-                        tabImage.color = this.inactiveTabColor;
-                    }
-
-                    if (tabTextComponent != null)
-                    {
-                        tabTextComponent.fontStyle = FontStyles.Normal;
-                        tabTextComponent.color = this.inactiveTextColor;
-                    }
-                }
-            }
+            this._shouldResetScrollY = true;
+            this.RefreshUI();
         }
 
         /// <summary>
@@ -183,32 +142,47 @@ namespace Blackvers.UI.Inventory
                 savedScrollY = contentRect.anchoredPosition.y;
             }
 
-            // Determine target ItemType filter based on current tab
+            // Determine target ItemType filter based on current sub-tab
             ItemType targetType = ItemType.Ore;
-            if (this._currentTab == InventoryTab.Bars)
+            bool isSoldierTab = false;
+
+            if (this.leftSidebar != null)
             {
-                targetType = ItemType.Bar;
-            }
-            else if (this._currentTab == InventoryTab.Items)
-            {
-                targetType = ItemType.Item;
+                switch (this.leftSidebar.CurrentSubTab)
+                {
+                    case InventorySubTab.Ore:
+                        targetType = ItemType.Ore;
+                        break;
+                    case InventorySubTab.Fragments:
+                        targetType = ItemType.Bar;
+                        break;
+                    case InventorySubTab.Items:
+                        targetType = ItemType.Item;
+                        break;
+                    case InventorySubTab.Soldiers:
+                        isSoldierTab = true;
+                        break;
+                }
             }
 
             // Get filtered list of items to display
             List<InventoryItem> itemsToDisplay = new List<InventoryItem>();
-            foreach (InventoryItem item in motherShipInventory.GetAllItems())
+            if (!isSoldierTab)
             {
-                if (item.mineralData == null || item.amount <= 0)
+                foreach (InventoryItem item in motherShipInventory.GetAllItems())
                 {
-                    continue;
-                }
+                    if (item.mineralData == null || item.amount <= 0)
+                    {
+                        continue;
+                    }
 
-                if (item.mineralData.Type != targetType)
-                {
-                    continue; // Filter by type
-                }
+                    if (item.mineralData.Type != targetType)
+                    {
+                        continue; // Filter by type
+                    }
 
-                itemsToDisplay.Add(item);
+                    itemsToDisplay.Add(item);
+                }
             }
 
             this.activeItemUIs.Clear();
@@ -303,18 +277,31 @@ namespace Blackvers.UI.Inventory
                 return;
             }
 
+            if (this.leftSidebar == null)
+            {
+                return;
+            }
+
             ItemType targetType = ItemType.Ore;
             string prefix = "Ores";
 
-            if (this._currentTab == InventoryTab.Bars)
+            switch (this.leftSidebar.CurrentSubTab)
             {
-                targetType = ItemType.Bar;
-                prefix = "Bars";
-            }
-            else if (this._currentTab == InventoryTab.Items)
-            {
-                targetType = ItemType.Item;
-                prefix = "Items";
+                case InventorySubTab.Ore:
+                    targetType = ItemType.Ore;
+                    prefix = "Ores";
+                    break;
+                case InventorySubTab.Fragments:
+                    targetType = ItemType.Bar;
+                    prefix = "Fragments";
+                    break;
+                case InventorySubTab.Items:
+                    targetType = ItemType.Item;
+                    prefix = "Items";
+                    break;
+                case InventorySubTab.Soldiers:
+                    this.capacityText.text = "Soldiers Capacity: 0 / 0";
+                    return;
             }
 
             float current = motherShipInventory.GetCurrentCapacity(targetType);

@@ -8,16 +8,6 @@ using TMPro;
 namespace Blackvers.UI.Inventory
 {
     /// <summary>
-    /// Type of inventory tabs.
-    /// </summary>
-    public enum InventoryTab
-    {
-        Ores,
-        Bars,
-        Items
-    }
-
-    /// <summary>
     /// Manages the UI display of the MotherShip's inventory, with a tab system
     /// separating Ores, Metal Bars, and Crafted Items.
     /// Tracks separate capacity limits and individual full states for each panel.
@@ -33,41 +23,15 @@ namespace Blackvers.UI.Inventory
         [SerializeField] protected GameObject itemPrefab;
         [SerializeField] protected TextMeshProUGUI capacityText;
 
+        [Header("Navigation & Sidebar")]
+        [SerializeField] protected TopNavigationController topNavigation;
+        [SerializeField] protected LeftSidebarController leftSidebar;
+
         [Header("Runtime")]
         [SerializeField] protected List<InventoryItemUI> activeItemUIs = new List<InventoryItemUI>();
 
         [Header("Object Pooling")]
         [SerializeField] protected List<InventoryItemUI> itemUIPool = new List<InventoryItemUI>();
-
-        [Header("Tab System Settings (Drag and Drop in Inspector)")]
-        [Tooltip("Button for the Ores tab.")]
-        [SerializeField] protected Button tabOresButton;
-        
-        [Tooltip("Button for the Bars tab.")]
-        [SerializeField] protected Button tabBarsButton;
-        
-        [Tooltip("Button for the Items tab.")]
-        [SerializeField] protected Button tabItemsButton;
-
-        [Tooltip("TextMeshPro text for the Ores tab.")]
-        [SerializeField] protected TextMeshProUGUI tabOresText;
-
-        [Tooltip("TextMeshPro text for the Bars tab.")]
-        [SerializeField] protected TextMeshProUGUI tabBarsText;
-
-        [Tooltip("TextMeshPro text for the Items tab.")]
-        [SerializeField] protected TextMeshProUGUI tabItemsText;
-
-        [Header("Tab Visual Settings")]
-        [SerializeField] protected Color activeTabColor = new Color(0.12f, 0.38f, 0.18f, 1f); // Sleek Emerald
-        [SerializeField] protected Color inactiveTabColor = new Color(0.18f, 0.18f, 0.18f, 0.9f); // Dark Gray
-        [SerializeField] protected Color activeTextColor = new Color(0.85f, 1f, 0.85f, 1f);
-        [SerializeField] protected Color inactiveTextColor = new Color(0.7f, 0.7f, 0.7f, 1f);
-
-        // Runtime dictionary references for easy state management
-        protected Dictionary<InventoryTab, Button> tabButtons = new Dictionary<InventoryTab, Button>();
-        protected Dictionary<InventoryTab, TextMeshProUGUI> tabTexts = new Dictionary<InventoryTab, TextMeshProUGUI>();
-        private InventoryTab _currentTab = InventoryTab.Ores;
 
         // Controls whether the entire inventory area blocks raycasts (input).
         private CanvasGroup _canvasGroup;
@@ -83,7 +47,8 @@ namespace Blackvers.UI.Inventory
             this.LoadContentContainer();
             this.LoadCapacityText();
             this.LoadItemPrefab();
-            this.LoadTabComponents();
+            this.LoadTopNavigation();
+            this.LoadLeftSidebar();
         }
 
         protected override void Start()
@@ -114,6 +79,16 @@ namespace Blackvers.UI.Inventory
 
         protected virtual void UnsubscribeFromEvents()
         {
+            if (this.topNavigation != null)
+            {
+                this.topNavigation.OnTabSelected -= this.HandleMainTabSelected;
+            }
+
+            if (this.leftSidebar != null)
+            {
+                this.leftSidebar.OnSubTabSelected -= this.HandleSubTabSelected;
+            }
+
             if (MotherShipController.Instance == null) return;
 
             if (MotherShipController.Instance.Inventory != null)
