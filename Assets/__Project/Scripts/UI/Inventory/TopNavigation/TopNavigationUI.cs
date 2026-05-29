@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Blackvers.UI.Styles;
 
 namespace Blackvers.UI.Inventory
 {
@@ -21,10 +22,7 @@ namespace Blackvers.UI.Inventory
         [SerializeField] protected TextMeshProUGUI tabPlanetsText;
 
         [Header("Visual Theme Settings")]
-        [SerializeField] protected Color activeTabColor = new Color(0.12f, 0.38f, 0.18f, 1f); // Sleek Emerald
-        [SerializeField] protected Color inactiveTabColor = new Color(0.18f, 0.18f, 0.18f, 0.9f); // Dark Gray
-        [SerializeField] protected Color activeTextColor = new Color(0.85f, 1f, 0.85f, 1f);
-        [SerializeField] protected Color inactiveTextColor = new Color(0.7f, 0.7f, 0.7f, 1f);
+        [SerializeField] protected TopNavigationStyle style;
 
         // Exposing buttons to the Controller for event binding
         public Button TabInventoryButton => this.tabInventoryButton;
@@ -108,14 +106,14 @@ namespace Blackvers.UI.Inventory
             if (button == null) return;
 
             Image backgroundImage = button.GetComponent<Image>();
-            if (backgroundImage != null)
+            if (backgroundImage != null && this.style != null)
             {
-                backgroundImage.color = isActive ? this.activeTabColor : this.inactiveTabColor;
+                backgroundImage.color = isActive ? this.style.ActiveTabColor : this.style.InactiveTabColor;
             }
 
             if (text == null) return;
 
-            text.color = isActive ? this.activeTextColor : this.inactiveTextColor;
+            text.color = isActive ? this.style.ActiveTextColor : this.style.InactiveTextColor;
             text.fontStyle = isActive ? FontStyles.Bold : FontStyles.Normal;
         }
     }

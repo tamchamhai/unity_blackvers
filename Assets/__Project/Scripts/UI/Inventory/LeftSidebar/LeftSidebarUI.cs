@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Blackvers.UI.Styles;
 
 namespace Blackvers.UI.Inventory
 {
@@ -23,10 +24,7 @@ namespace Blackvers.UI.Inventory
         [SerializeField] protected TextMeshProUGUI subTabSoldiersText;
 
         [Header("Visual Theme Settings")]
-        [SerializeField] protected Color activeSubTabColor = new Color(0.12f, 0.38f, 0.18f, 1f); // Sleek Emerald
-        [SerializeField] protected Color inactiveSubTabColor = new Color(0.18f, 0.18f, 0.18f, 0.9f); // Dark Gray
-        [SerializeField] protected Color activeTextColor = new Color(0.85f, 1f, 0.85f, 1f);
-        [SerializeField] protected Color inactiveTextColor = new Color(0.7f, 0.7f, 0.7f, 1f);
+        [SerializeField] protected LeftSidebarStyle style;
 
         // Exposing buttons to the Controller for event binding
         public Button SubTabOreButton => this.subTabOreButton;
@@ -130,14 +128,14 @@ namespace Blackvers.UI.Inventory
             if (button == null) return;
 
             Image backgroundImage = button.GetComponent<Image>();
-            if (backgroundImage != null)
+            if (backgroundImage != null && this.style != null)
             {
-                backgroundImage.color = isActive ? this.activeSubTabColor : this.inactiveSubTabColor;
+                backgroundImage.color = isActive ? this.style.ActiveSubTabColor : this.style.InactiveSubTabColor;
             }
 
             if (text == null) return;
 
-            text.color = isActive ? this.activeTextColor : this.inactiveTextColor;
+            text.color = isActive ? this.style.ActiveTextColor : this.style.InactiveTextColor;
             text.fontStyle = isActive ? FontStyles.Bold : FontStyles.Normal;
         }
     }

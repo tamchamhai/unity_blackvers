@@ -795,9 +795,6 @@ MonoBehaviour:
   capacityText: {fileID: 688935779}
   topNavigation: {fileID: 0}
   leftSidebar: {fileID: 0}
-  mainContentArea: {fileID: 0}
-  shipsPanel: {fileID: 0}
-  planetsPanel: {fileID: 0}
   activeItemUIs: []
   itemUIPool: []
 --- !u!225 &188759653
@@ -5853,10 +5850,11 @@ MonoBehaviour:
   tabInventoryText: {fileID: 1433784305}
   tabShipsText: {fileID: 501450753}
   tabPlanetsText: {fileID: 1187508490}
-  activeTabColor: {r: 0.12, g: 0.38, b: 0.18, a: 1}
-  inactiveTabColor: {r: 0.18, g: 0.18, b: 0.18, a: 0.9}
-  activeTextColor: {r: 0.85, g: 1, b: 0.85, a: 1}
-  inactiveTextColor: {r: 0.7, g: 0.7, b: 0.7, a: 1}
+  style:
+    activeTabColor: {r: 0.12, g: 0.38, b: 0.18, a: 1}
+    inactiveTabColor: {r: 0.18, g: 0.18, b: 0.18, a: 0.9}
+    activeTextColor: {r: 0.85, g: 1, b: 0.85, a: 1}
+    inactiveTextColor: {r: 0.7, g: 0.7, b: 0.7, a: 1}
 --- !u!114 &1053356312
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5870,6 +5868,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Blackvers.UI.Inventory.TopNavigationController
   view: {fileID: 1053356311}
+  mainContentArea: {fileID: 1469891004}
+  shipsPanel: {fileID: 0}
+  planetsPanel: {fileID: 0}
 --- !u!1 &1058362742
 GameObject:
   m_ObjectHideFlags: 0
@@ -7888,7 +7889,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -61.9611, y: 0}
+  m_AnchoredPosition: {x: -61.96106, y: 0}
   m_SizeDelta: {x: 121.5494, y: 44.3439}
   m_Pivot: {x: 1, y: 1}
 --- !u!114 &1399030452
@@ -9884,7 +9885,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 956.9, y: 15.999985}
+  m_AnchoredPosition: {x: 956.9, y: 15.999924}
   m_SizeDelta: {x: 32, y: 32}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1894345710
@@ -10089,10 +10090,11 @@ MonoBehaviour:
   subTabFragmentsText: {fileID: 2056740490}
   subTabItemsText: {fileID: 1017692545}
   subTabSoldiersText: {fileID: 1263381911}
-  activeSubTabColor: {r: 0.12, g: 0.38, b: 0.18, a: 1}
-  inactiveSubTabColor: {r: 0.18, g: 0.18, b: 0.18, a: 0.9}
-  activeTextColor: {r: 0.85, g: 1, b: 0.85, a: 1}
-  inactiveTextColor: {r: 0.7, g: 0.7, b: 0.7, a: 1}
+  style:
+    activeSubTabColor: {r: 0.12, g: 0.38, b: 0.18, a: 1}
+    inactiveSubTabColor: {r: 0.18, g: 0.18, b: 0.18, a: 0.9}
+    activeTextColor: {r: 0.85, g: 1, b: 0.85, a: 1}
+    inactiveTextColor: {r: 0.7, g: 0.7, b: 0.7, a: 1}
 --- !u!114 &1894712182
 MonoBehaviour:
   m_ObjectHideFlags: 0
